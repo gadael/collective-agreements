@@ -1,0 +1,14 @@
+{
+  "name": "collective-agreements",
+  "description": "package from Gadael leave management project, a repository of leave rights by collective-agreements",
+  "version": "0.0.0",
+  "private": true,
+  "author": "Paul de Rosanbo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gadael/collective-agreements/issues"
+  },
+  "dependencies": {
+    "scrape-it": "^3.3.0"
+  }
+}
