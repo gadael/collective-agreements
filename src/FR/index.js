@@ -3,8 +3,8 @@
 const scrapeIt = require("scrape-it");
 
 
-function absolutize(relative) {
-    return "https://www.legifrance.gouv.fr/"+relative.url;
+function absolutize(url) {
+    return "https://www.legifrance.gouv.fr/"+url;
 }
 
 
@@ -18,28 +18,56 @@ function getAgreementLinks(cont) {
             listItem: ".lien_texte div>a",
             data: {
                 url: {
-                    attr: 'href'
+                    attr: 'href',
+                    convert: absolutize
                 }
             }
         }
 
     }).then(page => {
-        return page.links.map(absolutize);
+        return page.links.map(x => x.url);
     });
 }
 
 
 
 function getAgreementPage(link) {
+
+    const headtext = 'En savoir plus sur cet article...';
+
     return scrapeIt(link, {
-        content: {
-            listItem:'.titreArt, .corpsArt'
+        title: '.contexte + .titreArt',
+        articles: {
+            listItem: "a[id] + div",
+            data: {
+                title: {
+                    selector: '.titreArt',
+                    convert: x => {
+                        let pos = x.indexOf(headtext);
+                        if (-1 !== pos) {
+                            return x.substr(0, pos-1);
+                        }
+                        return x;
+                    }
+                },
+
+                permalink: {
+                    selector: '.titreArt a',
+                    attr: 'href',
+                    convert: absolutize
+                },
+
+                body: {
+                    selector: '.corpsArt'
+                }
+            }
         },
         links: {
             listItem: ".right a",
             data: {
                 url: {
-                    attr: 'href'
+                    attr: 'href',
+                    convert: absolutize
                 }
             }
         }
@@ -62,7 +90,7 @@ function getAgreementContent(link) {
         return getAgreementPage(loopurl)
         .then(page => {
 
-            content.push(page.content);
+            content.push(page);
             maxpages--;
 
             // if we have 2 links, the next page is the first link
@@ -70,7 +98,7 @@ function getAgreementContent(link) {
                 return content;
             }
 
-            return loop(absolutize(page.links[0]));
+            return loop(page.links[0].url);
         });
     }
 
@@ -106,13 +134,19 @@ function getAgreements() {
 
 
 
-//getAgreementLinks('KALICONT000005635995')
-//.then(console.log);
+getAgreements()
+.then(console.log);
 
-const agreementUrl = 'https://www.legifrance.gouv.fr/affichIDCC.do?idArticle=KALIARTI000005814996&idSectionTA=KALISCTA000005709156&cidTexte=KALITEXT000005665667&idConvention=KALICONT000005635995&dateTexte=29990101';
 
-getAgreementContent(agreementUrl)
-.then(x => {
-    console.log(x);
+getAgreementLinks('KALICONT000005635995')
+.then(links => {
+    return Promise.all(links.map(getAgreementContent));
 })
+.then(pages => {
+    return pages.reduce(
+        (p1, p2) => p1.concat(p2),
+        []
+    );
+})
+.then(console.log)
 .catch(console.error);
