@@ -1,11 +1,24 @@
 'use strict';
 
 const scrapeIt = require("scrape-it");
-
+const keywords = ['congé', 'absence'];
 
 function absolutize(url) {
     return "https://www.legifrance.gouv.fr/"+url;
 }
+
+
+function containKeyword(str) {
+    for (let i=0; i<keywords.length; i++) {
+        if (-1 !== str.indexOf(keywords[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 
 
 /**
@@ -89,7 +102,6 @@ function getAgreementContent(link) {
     function loop(loopurl) {
         return getAgreementPage(loopurl)
         .then(page => {
-
             content.push(page);
             maxpages--;
 
@@ -134,9 +146,38 @@ function getAgreements() {
 
 
 
+/**
+ * If page titlt contain a keyword, all articles remains,
+ * otherwise only articles with keyword remains in a page
+ * @param {Array} pages
+ * @return {Array}
+ */
+function filterArticlesAboutLeaves(pages) {
+    return pages.map(page => {
+        if (containKeyword(page.title)) {
+            return page;
+        }
+
+        page.articles = page.articles.filter(article => {
+            return (containKeyword(article.title) || containKeyword(article.body));
+        });
+
+        return page;
+    })
+    .filter(page => {
+        return (page.articles.length > 0);
+    });
+}
+
+
+
+
+
+
+/*
 getAgreements()
 .then(console.log);
-
+*/
 
 getAgreementLinks('KALICONT000005635995')
 .then(links => {
@@ -148,5 +189,8 @@ getAgreementLinks('KALICONT000005635995')
         []
     );
 })
-.then(console.log)
+.then(filterArticlesAboutLeaves)
+.then(pages => {
+    console.log(JSON.stringify(pages, null, 4));
+})
 .catch(console.error);
