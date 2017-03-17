@@ -3,7 +3,7 @@
 const request = require('request');
 const scrapeIt = require("scrape-it");
 const cheerio = require('cheerio');
-const keywords = ['congé', 'absence'];
+const keywords = ['congés', 'vacances'];
 
 function absolutize(url) {
     return "https://www.legifrance.gouv.fr/"+url;
@@ -58,6 +58,16 @@ function loadPage(link) {
 
 
 
+function filterOrFind(set, selector) {
+    let f = set.filter(selector);
+    if (f.length) {
+        return f;
+    }
+
+    return set.find(selector);
+}
+
+
 
 function getAgreementPage(link) {
 
@@ -66,7 +76,7 @@ function getAgreementPage(link) {
     .then($ => {
 
         let page = {
-            title: $('.contexte + .titreArt').text(),
+            title: $('.contexte + .titreArt').text().trim(),
             articles: [],
             next: null
         };
@@ -83,11 +93,12 @@ function getAgreementPage(link) {
             }
 
             page.articles.push({
-                title: article.find('.titreArt').contents().filter(function() {
+                title: filterOrFind(article, '.titreArt').contents().filter(function() {
                     return this.nodeType === 3;
-                }).text(),
+                }).text().trim(),
+                status: filterOrFind(article, '.etatArt, .center').text().trim(),
                 permalink: absolutize(permalink),
-                body: article.find('.corpsArt').text()
+                body: filterOrFind(article, '.corpsArt').text().trim()
             });
         });
 
@@ -200,7 +211,7 @@ getAgreements()
 .then(console.log);
 */
 
-getAgreementLinks('KALICONT000005635995')
+getAgreementLinks('KALICONT000005635430')
 .then(links => {
     return Promise.all(links.map(getAgreementContent));
 })
@@ -210,7 +221,7 @@ getAgreementLinks('KALICONT000005635995')
         []
     );
 })
-//.then(filterArticlesAboutLeaves)
+.then(filterArticlesAboutLeaves)
 .then(pages => {
     console.log(JSON.stringify(pages, null, 4));
 })
