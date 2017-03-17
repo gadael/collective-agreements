@@ -1,6 +1,8 @@
 'use strict';
 
+const request = require('request');
 const scrapeIt = require("scrape-it");
+const cheerio = require('cheerio');
 const keywords = ['congé', 'absence'];
 
 function absolutize(url) {
@@ -43,49 +45,69 @@ function getAgreementLinks(cont) {
 }
 
 
+function loadPage(link) {
+    return new Promise((resolve, reject) => {
+        request(link, function (error, response, body) {
+            if (error) {
+                return reject(error);
+            }
+            resolve(cheerio.load(body));
+        });
+    });
+}
+
+
+
 
 function getAgreementPage(link) {
 
-    const headtext = 'En savoir plus sur cet article...';
 
-    return scrapeIt(link, {
-        title: '.contexte + .titreArt',
-        articles: {
-            listItem: "a[id] + div",
-            data: {
-                title: {
-                    selector: '.titreArt',
-                    convert: x => {
-                        let pos = x.indexOf(headtext);
-                        if (-1 !== pos) {
-                            return x.substr(0, pos-1);
-                        }
-                        return x;
-                    }
-                },
+    return loadPage(link)
+    .then($ => {
 
-                permalink: {
-                    selector: '.titreArt a',
-                    attr: 'href',
-                    convert: absolutize
-                },
+        let page = {
+            title: $('.contexte + .titreArt').text(),
+            articles: [],
+            next: null
+        };
 
-                body: {
-                    selector: '.corpsArt'
-                }
+        $('a[id]').each((i, anchor) => {
+
+            let article = $(anchor).nextUntil('a[id]');
+
+            // permalink is mandatory
+            let permalink = article.find('.titreArt a').attr('href');
+
+            if (undefined === permalink) {
+                return;
             }
-        },
-        links: {
-            listItem: ".right a",
-            data: {
-                url: {
-                    attr: 'href',
-                    convert: absolutize
-                }
+
+            page.articles.push({
+                title: article.find('.titreArt').contents().filter(function() {
+                    return this.nodeType === 3;
+                }).text(),
+                permalink: absolutize(permalink),
+                body: article.find('.corpsArt').text()
+            });
+        });
+
+        $('.right a').each((i, a) => {
+            const ca = $(a);
+            const at = ca.text();
+            const url = ca.attr('href');
+
+            if (url && (url.indexOf('javascript') === -1) && at === 'Bloc suivant >>') {
+                page.next = absolutize(url);
             }
-        }
+        });
+
+
+        return page;
+
     });
 }
+
+
 
 /**
  * Get all pages for one link with a 10 pages limit
@@ -105,12 +127,11 @@ function getAgreementContent(link) {
             content.push(page);
             maxpages--;
 
-            // if we have 2 links, the next page is the first link
-            if (4 !== page.links.length || maxpages <= 0) {
+            if (null === page.next || maxpages <= 0) {
                 return content;
             }
 
-            return loop(page.links[0].url);
+            return loop(page.next);
         });
     }
 
@@ -189,8 +210,10 @@ getAgreementLinks('KALICONT000005635995')
         []
     );
 })
-.then(filterArticlesAboutLeaves)
+//.then(filterArticlesAboutLeaves)
 .then(pages => {
     console.log(JSON.stringify(pages, null, 4));
 })
-.catch(console.error);
+.catch(err => {
+    console.error(err.stack);
+});

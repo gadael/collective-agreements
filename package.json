@@ -9,6 +9,8 @@
     "url": "https://github.com/gadael/collective-agreements/issues"
   },
   "dependencies": {
+    "cheerio": "^0.22.0",
+    "request": "^2.81.0",
     "scrape-it": "^3.3.0"
   }
 }
