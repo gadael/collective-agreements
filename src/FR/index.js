@@ -3,6 +3,7 @@
 const request = require('request');
 const scrapeIt = require("scrape-it");
 const cheerio = require('cheerio');
+const fs = require('fs');
 const keywords = ['congés', 'vacances'];
 
 function absolutize(url) {
@@ -21,14 +22,13 @@ function containKeyword(str) {
 
 
 
-
-
 /**
  * @param {String} cont     ID from the agreements list ex KALICONT000005635995
  * @return {Promise}
  */
 function getAgreementLinks(cont) {
     return scrapeIt("https://www.legifrance.gouv.fr/affichIDCC.do?idConvention="+cont, {
+        number: '.contexte>.soustitre',
         links: {
             listItem: ".lien_texte div>a",
             data: {
@@ -40,7 +40,10 @@ function getAgreementLinks(cont) {
         }
 
     }).then(page => {
-        return page.links.map(x => x.url);
+        return {
+            number: page.number,
+            links: page.links.map(x => x.url)
+        };
     });
 }
 
@@ -202,28 +205,50 @@ function filterArticlesAboutLeaves(pages) {
 }
 
 
+function saveAgreement(linkNumber, name) {
+    let number;
+    return getAgreementLinks('KALICONT000005635430')
+    .then(page => {
+        number = page.number;
+        return Promise.all(page.links.map(getAgreementContent));
+    })
+    .then(pages => {
+        return pages.reduce(
+            (p1, p2) => p1.concat(p2),
+            []
+        );
+    })
+    .then(filterArticlesAboutLeaves)
+    .then(pages => {
+
+        let data = JSON.stringify({
+            number: number,
+            name: name,
+            pages: pages
+        }, null, 4);
+
+        return new Promise(function(resolve, reject) {
+
+            let filename = number.split(' ')[1]+".json";
+
+            fs.writeFile("data/"+filename, data, 'UTF-8', err => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(data);
+            });
+        });
+    });
+}
 
 
 
 
-/*
 getAgreements()
-.then(console.log);
-*/
-
-getAgreementLinks('KALICONT000005635430')
-.then(links => {
-    return Promise.all(links.map(getAgreementContent));
-})
-.then(pages => {
-    return pages.reduce(
-        (p1, p2) => p1.concat(p2),
-        []
-    );
-})
-.then(filterArticlesAboutLeaves)
-.then(pages => {
-    console.log(JSON.stringify(pages, null, 4));
+.then(agreements => {
+    return Promise.all(agreements.map(agreement => {
+        return saveAgreement(agreement.text, agreement.name);
+    }));
 })
 .catch(err => {
     console.error(err.stack);
