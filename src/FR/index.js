@@ -246,9 +246,13 @@ function saveAgreement(linkNumber, name) {
 
 getAgreements()
 .then(agreements => {
-    return Promise.all(agreements.map(agreement => {
-        return saveAgreement(agreement.text, agreement.name);
-    }));
+    let p = Promise.resolve();
+    agreements.forEach(agreement => {
+        console.log(agreement);
+        p = p.then(saveAgreement(agreement.text, agreement.name));
+    });
+
+    return p;
 })
 .catch(err => {
     console.error(err.stack);
