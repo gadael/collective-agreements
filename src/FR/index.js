@@ -27,7 +27,8 @@ function containKeyword(str) {
  * @return {Promise}
  */
 function getAgreementLinks(cont) {
-    return scrapeIt("https://www.legifrance.gouv.fr/affichIDCC.do?idConvention="+cont, {
+    let url = "https://www.legifrance.gouv.fr/affichIDCC.do?idConvention="+cont;
+    return scrapeIt(url, {
         number: '.contexte>.soustitre',
         links: {
             listItem: ".lien_texte div>a",
@@ -40,6 +41,12 @@ function getAgreementLinks(cont) {
         }
 
     }).then(page => {
+
+
+        if (undefined === page.number) {
+            throw new Error('Collective agreement not found, check '+url);
+        }
+
         return {
             number: page.number,
             links: page.links.map(x => x.url)
@@ -175,7 +182,9 @@ function getAgreements() {
             }
       }
     }).then(page => {
-        return page.agreements;
+        return page.agreements.filter(a => {
+            return (a.text !== undefined);
+        });
     });
 }
 
@@ -207,8 +216,9 @@ function filterArticlesAboutLeaves(pages) {
 
 function saveAgreement(linkNumber, name) {
     let number;
-    return getAgreementLinks('KALICONT000005635430')
+    return getAgreementLinks(linkNumber)
     .then(page => {
+
         number = page.number;
         return Promise.all(page.links.map(getAgreementContent));
     })
@@ -229,8 +239,15 @@ function saveAgreement(linkNumber, name) {
 
         return new Promise(function(resolve, reject) {
 
-            let filename = number.split(' ')[1]+".json";
+            let filename;
+            if ('TI' === number) {
+                filename = 'TI.json';
+            } else {
+                filename = number.split(' ')[1]+".json";
+            }
 
+
+            console.log(filename);
             fs.writeFile("data/"+filename, data, 'UTF-8', err => {
                 if (err) {
                     return reject(err);
@@ -248,8 +265,10 @@ getAgreements()
 .then(agreements => {
     let p = Promise.resolve();
     agreements.forEach(agreement => {
-        console.log(agreement);
-        p = p.then(saveAgreement(agreement.text, agreement.name));
+
+        p = p.then(function(){
+            return saveAgreement(agreement.cont, agreement.name);
+        });
     });
 
     return p;
