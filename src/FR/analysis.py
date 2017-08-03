@@ -33,14 +33,20 @@ def tokenizeArticle(article):
     body = ' '.join(body.split())
     sent = sent_tokenize(body)
 
-    wd = []
+    parsed = []
     for s in sent:
-        wd.append(matchDuration(s))
+        m = matchAnnualLeaveMonth(s)
+        if None != m:
+            parsed.append(m)
+
+        m = matchAnnualLeavePeriod(s)
+        if None != m:
+            parsed.append(m)
+
 
     return {
-        'source': article.get('body'),
-        'tokenized': sent,
-        'with_duration': wd
+    #    'sentences': sent,
+        'parsed': parsed
     }
 
 def getTransformedFile(data):
@@ -60,6 +66,55 @@ def getTransformedFile(data):
         'name': data.get('name'),
         'number': data.get('number'),
         'articles': articles
+    }
+
+
+
+def getMonthNumber(str):
+    months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    return (months.index(str) + 1)
+
+
+def matchAnnualLeaveMonth(str):
+    m = re.search('(\d|\d,\d+)\s+(jours\s+et\s+demi|jours).*mois', str)
+
+    if None == m:
+        return None
+
+    qte = float(m.group(1).replace(',', '.'))
+    if ('jours' != m.group(2)):
+        qte = qte + 0.5;
+
+
+    return {
+        'sentence': str,
+        'context': m.group(0),
+        'quantity': qte,
+        'unit': 'day'
+    }
+
+
+def matchAnnualLeavePeriod(str):
+
+    day = '(\d+)[erm]{0,3}'
+    month = '(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)'
+    separator = '(?:-|au)'
+    date = day+'\s+'+month
+    # 12 mois de travail effectif au cours de l'année de référence (1er juin-31 mai)
+    m = re.search('12\s+mois.*'+date+'\s*'+separator+'\s*'+date, str)
+
+    if None == m:
+        return None
+
+    # make sure the interval is one year
+
+
+    return {
+        'sentence': str,
+        'context': m.group(0),
+        'from': (int(m.group(1)), getMonthNumber(m.group(2))),
+        'to': (int(m.group(3)), getMonthNumber(m.group(4)))
     }
 
 
@@ -88,5 +143,5 @@ def test():
     return getTransformedFile(data[0])
 
 
-data = test()
+data = transform()
 pprint(data)
