@@ -1,7 +1,10 @@
 
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import sent_tokenize
+from nltk import pos_tag
+from nltk.corpus import treebank
 from os import walk
 import json
+import re
 from pprint import pprint
 
 
@@ -26,9 +29,18 @@ def tokenizeArticle(article):
     if 'body' not in article:
         return {}
 
+    body = article.get('body')
+    body = ' '.join(body.split())
+    sent = sent_tokenize(body)
+
+    wd = []
+    for s in sent:
+        wd.append(matchDuration(s))
+
     return {
         'source': article.get('body'),
-        'tokenized': word_tokenize(article.get('body'))
+        'tokenized': sent,
+        'with_duration': wd
     }
 
 def getTransformedFile(data):
@@ -51,12 +63,30 @@ def getTransformedFile(data):
     }
 
 
+def matchDuration(str):
+    # 2 jours et demi
+    # 2 jours
+    # 10 mois
+    # 3 semaines successives
+
+    all = re.findall('(\d+)\s((?:jour|moi|semaine)s+)', str)
+    return {
+        'sentence': str,
+    #    'matches': list(map(lambda x: x.group(0), all))
+        'matches': all
+    }
+
+
 def transform():
     t = []
     for data in getData():
         t.append(getTransformedFile(data))
     return t
 
+def test():
+    data = getData()
+    return getTransformedFile(data[0])
 
-data = transform()
-pprint(data[0])
+
+data = test()
+pprint(data)
