@@ -42,6 +42,14 @@ function getAgreementLinks(cont) {
 
     }).then(page => {
 
+        const links = page.links.map(x => x.url);
+        const uniqueLinks = links.reduce(function(accum, current) {
+            if (accum.indexOf(current) < 0) {
+                accum.push(current);
+            }
+            return accum;
+        }, []);
+
 
         if (undefined === page.number) {
             throw new Error('Collective agreement not found, check '+url);
@@ -49,7 +57,7 @@ function getAgreementLinks(cont) {
 
         return {
             number: page.number,
-            links: page.links.map(x => x.url)
+            links: uniqueLinks
         };
     });
 }
@@ -223,10 +231,20 @@ function saveAgreement(linkNumber, name) {
         return Promise.all(page.links.map(getAgreementContent));
     })
     .then(pages => {
-        return pages.reduce(
+        const mergedPages = pages.reduce(
             (p1, p2) => p1.concat(p2),
             []
         );
+
+
+
+        return mergedPages.reduce(function(accum, current) {
+            const accTitles = accum.map(p => p.title);
+            if (accTitles.indexOf(current.title) < 0) {
+                accum.push(current);
+            }
+            return accum;
+        }, []);
     })
     .then(filterArticlesAboutLeaves)
     .then(pages => {
