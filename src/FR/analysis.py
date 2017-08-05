@@ -132,6 +132,25 @@ def matchDuration(str):
     }
 
 
+
+def tagSentence(str):
+    """get list of tags for one sentence"""
+    tags = []
+    if 'fractionnement' in str:
+        tags.append('splitting')
+
+    if 'repos compensateur' in str:
+        tags.append('RTT')
+
+    if 'moyenne de 35 heures' in str:
+        tags.append('RTT')
+
+    if 'durée des congés payés' in str:
+        tags.append('annual-leave')
+
+
+
+
 def transform():
     t = []
     for data in getData():
