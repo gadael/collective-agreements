@@ -31,23 +31,17 @@ def tokenizeArticle(article):
 
     body = article.get('body')
     body = ' '.join(body.split())
-    sent = sent_tokenize(body)
+    sentences = sent_tokenize(body)
+    taggedSentences = []
 
-    parsed = []
-    for s in sent:
-        m = matchAnnualLeaveMonth(s)
-        if None != m:
-            parsed.append(m)
+    for sent in sentences:
+        tags = tagSentence(sent)
+        taggedSentences.append({
+            'sentence': sent,
+            'tags': tags
+        })
 
-        m = matchAnnualLeavePeriod(s)
-        if None != m:
-            parsed.append(m)
-
-
-    return {
-    #    'sentences': sent,
-        'parsed': parsed
-    }
+    return taggedSentences
 
 def getTransformedFile(data):
 
@@ -148,6 +142,24 @@ def tagSentence(str):
     if 'durée des congés payés' in str:
         tags.append('annual-leave')
 
+    if 'maladie' in str:
+        tags.append('illness')
+
+    if 'congé exceptionnel' in str:
+        tags.append('exceptions')
+
+    if 'Congés exceptionnels pour événements de famille' in str:
+        tags.append('exceptions')
+
+    if 'CET' in str:
+        tags.append('CET')
+
+    if 'épargne-temps' in str:
+        tags.append('CET')
+
+    # TODO remove duplicated tags
+
+    return tags
 
 
 
@@ -159,8 +171,8 @@ def transform():
 
 def test():
     data = getData()
-    return getTransformedFile(data[0])
+    return getTransformedFile(data[3])
 
 
-data = transform()
+data = test()
 pprint(data)

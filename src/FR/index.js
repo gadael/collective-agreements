@@ -251,6 +251,8 @@ function saveAgreement(linkNumber, name) {
 
         let data = JSON.stringify({
             number: number,
+            cont: linkNumber,
+            lastModified: new Date(),
             name: name,
             pages: pages
         }, null, 4);
@@ -279,8 +281,66 @@ function saveAgreement(linkNumber, name) {
 
 
 
-getAgreements()
-.then(agreements => {
+/**
+ * Load exising files from the data folder with the last modified date
+ */
+function getExistingFiles() {
+    return new Promise((resolve, reject) => {
+        fs.readdir('data/', (err, files) => {
+            const existingFiles = files.map(file => {
+                const data = require('./data/'+file);
+                return {
+                    filename: file,
+                    lastModified: data.lastModified,
+                    cont: data.cont
+                };
+            });
+            resolve(existingFiles);
+        });
+    });
+
+}
+
+
+function getContextIndex(existingFiles) {
+    let obj = {};
+    existingFiles.forEach(f => {
+        obj[f.cont] = f.lastModified;
+    });
+
+    return obj;
+}
+
+
+
+function sortAgreements(agreements, existingFiles) {
+    const contIndex = getContextIndex(existingFiles);
+    function getLm(a) {
+        return contIndex[a.cont];
+    }
+
+    return agreements.sort((a1, a2) => {
+        if (!a1.cont || !getLm(a1)) {
+            return -1;
+        }
+
+        if (!a2.cont || !getLm(a2)) {
+            return 1;
+        }
+    });
+}
+
+
+
+Promise.all([
+    getAgreements(),
+    getExistingFiles()
+])
+.then(all => {
+
+    const agreements = sortAgreements(all[0], all[1]);
+
+
     let p = Promise.resolve();
     agreements.forEach(agreement => {
 
