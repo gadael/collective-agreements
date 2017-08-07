@@ -145,7 +145,7 @@ function getAgreementPage(link) {
  */
 function getAgreementContent(link) {
     let content = [];
-    let maxpages = 10;
+    let maxpages = 200;
 
     /**
      * @return {Promise}
@@ -227,16 +227,22 @@ function saveAgreement(linkNumber, name) {
     return getAgreementLinks(linkNumber)
     .then(page => {
 
+        // Use only the first link because all pages are linked with the next page button
+        page.links = [page.links[0]];
+
         number = page.number;
         return Promise.all(page.links.map(getAgreementContent));
     })
     .then(pages => {
+
         const mergedPages = pages.reduce(
             (p1, p2) => p1.concat(p2),
             []
         );
 
-
+        mergedPages.forEach(chapter => {
+            console.log(chapter.title);
+        });
 
         return mergedPages.reduce(function(accum, current) {
             const accTitles = accum.map(p => p.title);
@@ -338,7 +344,9 @@ Promise.all([
 ])
 .then(all => {
 
-    const agreements = sortAgreements(all[0], all[1]);
+    let agreements = sortAgreements(all[0], all[1]);
+    const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
+    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
 
 
     let p = Promise.resolve();
@@ -350,6 +358,7 @@ Promise.all([
     });
 
     return p;
+
 })
 .catch(err => {
     console.error(err.stack);
