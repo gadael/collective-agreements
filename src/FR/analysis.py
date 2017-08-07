@@ -129,33 +129,39 @@ def matchDuration(str):
 
 def tagSentence(str):
     """get list of tags for one sentence"""
-    tags = []
+    tags = set()
     if 'fractionnement' in str:
-        tags.append('splitting')
+        tags.add('splitting')
 
     if 'repos compensateur' in str:
-        tags.append('RTT')
+        tags.add('RTT')
 
     if 'moyenne de 35 heures' in str:
-        tags.append('RTT')
+        tags.add('RTT')
 
     if 'durée des congés payés' in str:
-        tags.append('annual-leave')
+        tags.add('annual-leave')
 
     if 'maladie' in str:
-        tags.append('illness')
+        tags.add('illness')
 
     if 'congé exceptionnel' in str:
-        tags.append('exceptions')
+        tags.add('exceptions')
 
     if 'Congés exceptionnels pour événements de famille' in str:
-        tags.append('exceptions')
+        tags.add('exceptions')
 
     if 'CET' in str:
-        tags.append('CET')
+        tags.add('CET')
 
     if 'épargne-temps' in str:
-        tags.append('CET')
+        tags.add('CET')
+
+    if 'congés individuels de formation' in str:
+        tags.add('training')
+
+    if 'congés de validation des acquis' in str:
+        tags.add('training')
 
     # TODO remove duplicated tags
 
@@ -171,8 +177,20 @@ def transform():
 
 def test():
     data = getData()
-    return getTransformedFile(data[3])
+    return getTransformedFile(data[0])
 
 
-data = test()
-pprint(data)
+def getAgreementTags(agreement):
+    tags = set()
+    for sentences in agreement.get('articles'):
+        for sent in sentences:
+            tags.update(sent.get('tags'))
+    return tags
+
+def tagsByAgreements():
+    for data in getData():
+        agreement = getTransformedFile(data)
+        print('{0:15} {1}'.format(agreement.get('number'), ', '.join(getAgreementTags(agreement))))
+
+
+tagsByAgreements()
