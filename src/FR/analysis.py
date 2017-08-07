@@ -127,6 +127,8 @@ def matchDuration(str):
 
 
 
+
+
 def tagSentence(str):
     """get list of tags for one sentence"""
     tags = set()
@@ -142,7 +144,40 @@ def tagSentence(str):
     if 'durée des congés payés' in str:
         tags.add('annual-leave')
 
-    if 'maladie' in str:
+    if 'la période normale des congés payés' in str:
+        tags.add('annual-leave')
+
+    if 'cinq semaines de congés payés légaux' in str:
+        tags.add('annual-leave')
+
+    if 'congé annuel est payé' in str:
+        tags.add('annual-leave')
+
+    if 'congé annuel est fixé' in str:
+        tags.add('annual-leave')
+
+    if 'congé de 2,5 jours ouvrables par mois' in str:
+        tags.add('annual-leave')
+
+    if 'semaines de congés payés par année de référence' in str:
+        tags.add('annual-leave')
+
+    if 'période des congés principaux est fixée du' in str:
+        tags.add('annual-leave')
+
+    if 'droits au congé annuel' in str:
+        tags.add('annual-leave')
+
+    if 'congés d\'ancienneté' in str:
+        tags.add('seniority')
+
+    if 'congé supplémentaire pour ancienneté' in str:
+        tags.add('seniority')
+
+    if 'absent pour cause de maladie' in str:
+        tags.add('illness')
+
+    if 'absence pour maladie' in str:
         tags.add('illness')
 
     if 'congé exceptionnel' in str:
