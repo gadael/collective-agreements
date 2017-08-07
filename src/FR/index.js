@@ -227,6 +227,11 @@ function saveAgreement(linkNumber, name) {
     return getAgreementLinks(linkNumber)
     .then(page => {
 
+        if (page.number === 'TI') {
+            throw new Error('Found TI with '+page.links.length+' links');
+        }
+
+
         // Use only the first link because all pages are linked with the next page button
         page.links = [page.links[0]];
 
@@ -239,11 +244,11 @@ function saveAgreement(linkNumber, name) {
             (p1, p2) => p1.concat(p2),
             []
         );
-
+        /*
         mergedPages.forEach(chapter => {
             console.log(chapter.title);
         });
-
+        */
         return mergedPages.reduce(function(accum, current) {
             const accTitles = accum.map(p => p.title);
             if (accTitles.indexOf(current.title) < 0) {
@@ -345,15 +350,21 @@ Promise.all([
 .then(all => {
 
     let agreements = sortAgreements(all[0], all[1]);
+
+    /*
+    // filter on One agreement
     const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
     agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
-
+    */
 
     let p = Promise.resolve();
     agreements.forEach(agreement => {
 
         p = p.then(function(){
-            return saveAgreement(agreement.cont, agreement.name);
+            return saveAgreement(agreement.cont, agreement.name)
+            .catch(err => {
+                console.log(err);
+            });
         });
     });
 
