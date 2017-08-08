@@ -126,13 +126,24 @@ def matchDuration(str):
     }
 
 
-
+def matchList(str, ls):
+    for keywords in ls:
+        if keywords in str:
+            return True
+    return False
 
 
 def tagSentence(str):
     """get list of tags for one sentence"""
     tags = set()
-    if 'fractionnement' in str:
+
+
+    if matchList(str, [
+    'fractionnement des congés',
+    'fractionnement du congé',
+    'jours supplémentaires pour fractionnement',
+    'jours de fractionnement',
+    'fractionnement de la période de 4 semaines']):
         tags.add('splitting')
 
     if 'repos compensateur' in str:
@@ -141,32 +152,20 @@ def tagSentence(str):
     if 'moyenne de 35 heures' in str:
         tags.add('RTT')
 
-    if 'durée des congés payés' in str:
+    if matchList(str, [
+    'durée des congés payés',
+    'la période normale des congés payés',
+    'cinq semaines de congés payés',
+    'congé annuel est payé',
+    'congé annuel est fixé',
+    'congé de 2,5 jours ouvrables par mois',
+    'semaines de congés payés par année de référence',
+    'période des congés principaux est fixée du',
+    'droits au congé annuel',
+    'durée des congés annuels',
+    'période normale des congés annuels']):
         tags.add('annual-leave')
 
-    if 'la période normale des congés payés' in str:
-        tags.add('annual-leave')
-
-    if 'cinq semaines de congés payés légaux' in str:
-        tags.add('annual-leave')
-
-    if 'congé annuel est payé' in str:
-        tags.add('annual-leave')
-
-    if 'congé annuel est fixé' in str:
-        tags.add('annual-leave')
-
-    if 'congé de 2,5 jours ouvrables par mois' in str:
-        tags.add('annual-leave')
-
-    if 'semaines de congés payés par année de référence' in str:
-        tags.add('annual-leave')
-
-    if 'période des congés principaux est fixée du' in str:
-        tags.add('annual-leave')
-
-    if 'droits au congé annuel' in str:
-        tags.add('annual-leave')
 
     if 'congés d\'ancienneté' in str:
         tags.add('seniority')
@@ -174,22 +173,13 @@ def tagSentence(str):
     if 'congé supplémentaire pour ancienneté' in str:
         tags.add('seniority')
 
-    if 'absent pour cause de maladie' in str:
+    if matchList(str, ['absent pour cause de maladie', 'absence pour maladie']):
         tags.add('illness')
 
-    if 'absence pour maladie' in str:
-        tags.add('illness')
-
-    if 'congé exceptionnel' in str:
+    if matchList(str, ['congé exceptionnel', 'Congés exceptionnels pour événements']):
         tags.add('exceptions')
 
-    if 'Congés exceptionnels pour événements de famille' in str:
-        tags.add('exceptions')
-
-    if 'CET' in str:
-        tags.add('CET')
-
-    if 'épargne-temps' in str:
+    if matchList(str, ['CET', 'épargne-temps']):
         tags.add('CET')
 
     if 'congés individuels de formation' in str:
