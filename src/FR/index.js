@@ -99,6 +99,11 @@ function getAgreementPage(link) {
             next: null
         };
 
+
+
+
+
+
         $('a[id]').each((i, anchor) => {
 
             let article = $(anchor).nextUntil('a[id]');
@@ -130,9 +135,28 @@ function getAgreementPage(link) {
             }
         });
 
-
         return page;
 
+
+    });
+}
+
+
+
+function getAgreementFirstLink(link) {
+
+    return loadPage(link)
+    .then($ => {
+
+        // linked articles
+        // IDCC 1611
+
+        const subLink = $('a.liensArtResolu').first();
+        if (subLink.length === 0) {
+            return link;
+        }
+
+        return absolutize(subLink.attr('href'));
     });
 }
 
@@ -144,27 +168,31 @@ function getAgreementPage(link) {
  * @return {Promise}
  */
 function getAgreementContent(link) {
-    let content = [];
-    let maxpages = 200;
 
-    /**
-     * @return {Promise}
-     */
-    function loop(loopurl) {
-        return getAgreementPage(loopurl)
-        .then(page => {
-            content.push(page);
-            maxpages--;
+    return getAgreementFirstLink(link)
+    .then(link => {
+        let content = [];
+        let maxpages = 200;
 
-            if (null === page.next || maxpages <= 0) {
-                return content;
-            }
+        /**
+         * @return {Promise}
+         */
+        function loop(loopurl) {
+            return getAgreementPage(loopurl)
+            .then(page => {
+                content.push(page);
+                maxpages--;
 
-            return loop(page.next);
-        });
-    }
+                if (null === page.next || maxpages <= 0) {
+                    return content;
+                }
 
-    return loop(link);
+                return loop(page.next);
+            });
+        }
+
+        return loop(link);
+    });
 }
 
 
@@ -249,6 +277,9 @@ function saveAgreement(linkNumber, name) {
             console.log(chapter.title);
         });
         */
+
+        console.log(mergedPages[0]);
+
         return mergedPages.reduce(function(accum, current) {
             const accTitles = accum.map(p => p.title);
             if (accTitles.indexOf(current.title) < 0) {
@@ -351,11 +382,11 @@ Promise.all([
 
     let agreements = sortAgreements(all[0], all[1]);
 
-    /*
+
     // filter on One agreement
-    const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
-    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
-    */
+    //const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
+    const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
+    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc1611));
 
     let p = Promise.resolve();
     agreements.forEach(agreement => {
