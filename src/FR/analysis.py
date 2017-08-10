@@ -163,7 +163,8 @@ def tagSentence(str):
     'période des congés principaux est fixée du',
     'droits au congé annuel',
     'durée des congés annuels',
-    'période normale des congés annuels']):
+    'période normale des congés annuels',
+    'Ce droit est égal à 25 jours ouvrés']):
         tags.add('annual-leave')
 
 

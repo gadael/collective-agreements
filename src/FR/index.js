@@ -278,8 +278,6 @@ function saveAgreement(linkNumber, name) {
         });
         */
 
-        console.log(mergedPages[0]);
-
         return mergedPages.reduce(function(accum, current) {
             const accTitles = accum.map(p => p.title);
             if (accTitles.indexOf(current.title) < 0) {
@@ -384,9 +382,9 @@ Promise.all([
 
 
     // filter on One agreement
-    //const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
-    const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
-    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc1611));
+    const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
+    //const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
+    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
 
     let p = Promise.resolve();
     agreements.forEach(agreement => {
