@@ -4,7 +4,7 @@ const request = require('request');
 const scrapeIt = require("scrape-it");
 const cheerio = require('cheerio');
 const fs = require('fs');
-const keywords = ['congés', 'vacances'];
+const keywords = ['congé', 'vacance'];
 
 function absolutize(url) {
     return "https://www.legifrance.gouv.fr/"+url;
@@ -382,9 +382,13 @@ Promise.all([
 
 
     // filter on One agreement
-    const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
-    //const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
-    agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
+    // const cc700 = 'Ingénieurs et cadres de la production des papiers, cartons et celluloses du 4 décembre 1972';
+    // const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
+    // const cc1563 = 'Cadres de la presse hebdomadaire régionale d\'information du 15 octobre 1989';
+
+    // agreements = agreements.filter(a => -1 !== a.name.indexOf(cc1563));
+
+    //console.log(agreements);
 
     let p = Promise.resolve();
     agreements.forEach(agreement => {
