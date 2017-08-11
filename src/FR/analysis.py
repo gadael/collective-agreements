@@ -35,7 +35,7 @@ def tokenizeArticle(article):
     taggedSentences = []
 
     for sent in sentences:
-        tags = tagSentence(sent)
+        tags = tagSentence(article.get('title')+' '+sent)
         taggedSentences.append({
             'sentence': sent,
             'tags': tags
@@ -153,6 +153,7 @@ def tagSentence(str):
         tags.add('RTT')
 
     if matchList(str, [
+    'La période des congés payés',
     'durée des congés payés',
     'la période normale des congés payés',
     'cinq semaines de congés payés',
@@ -168,25 +169,37 @@ def tagSentence(str):
         tags.add('annual-leave')
 
 
-    if 'congés d\'ancienneté' in str:
+    if matchList(str, [
+    'congés d\'ancienneté',
+    'congés pour ancienneté',
+    'congé supplémentaire pour ancienneté']):
         tags.add('seniority')
 
-    if 'congé supplémentaire pour ancienneté' in str:
-        tags.add('seniority')
 
     if matchList(str, ['absent pour cause de maladie', 'absence pour maladie']):
         tags.add('illness')
 
-    if matchList(str, ['congé exceptionnel', 'Congés exceptionnels pour événements']):
+
+    # dans les conges exceptionnels :
+    # déménagement
+    # Mariage
+    # Enfant malade
+
+    if matchList(str, [
+    'Congés spéciaux',
+    'Congés exceptionnels',
+    'congé exceptionnel',
+    'Congés pour événements',
+    'Congés exceptionnels pour événements']):
         tags.add('exceptions')
 
     if matchList(str, ['CET', 'épargne-temps']):
         tags.add('CET')
 
-    if 'congés individuels de formation' in str:
-        tags.add('training')
 
-    if 'congés de validation des acquis' in str:
+    if matchList(str, [
+    'congés individuels de formation',
+    'congés de validation des acquis']):
         tags.add('training')
 
     # TODO remove duplicated tags
