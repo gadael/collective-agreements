@@ -30,6 +30,7 @@ function getAgreementLinks(cont) {
     let url = "https://www.legifrance.gouv.fr/affichIDCC.do?idConvention="+cont;
     return scrapeIt(url, {
         number: '.contexte>.soustitre',
+        header: '.data>h3+.center',
         links: {
             listItem: ".lien_texte div>a",
             data: {
@@ -41,6 +42,9 @@ function getAgreementLinks(cont) {
         }
 
     }).then(page => {
+
+        const parsedHeader = page.header.match(/Brochure\s+n°\s*(\d+)/);
+        const brochure = (parsedHeader && undefined !== parsedHeader[1]) ? parseInt(parsedHeader[1], 10) : null;
 
         const links = page.links.map(x => x.url);
         const uniqueLinks = links.reduce(function(accum, current) {
@@ -55,8 +59,11 @@ function getAgreementLinks(cont) {
             throw new Error('Collective agreement not found, check '+url);
         }
 
+        console.log(brochure);
+
         return {
             number: page.number,
+            brochure: brochure,
             links: uniqueLinks
         };
     });
@@ -386,9 +393,7 @@ Promise.all([
     // const cc1611 = 'Entreprises de logistique de communication écrite directe du 19 novembre 1991';
     // const cc1563 = 'Cadres de la presse hebdomadaire régionale d\'information du 15 octobre 1989';
 
-    // agreements = agreements.filter(a => -1 !== a.name.indexOf(cc1563));
-
-    //console.log(agreements);
+    // agreements = agreements.filter(a => -1 !== a.name.indexOf(cc700));
 
     let p = Promise.resolve();
     agreements.forEach(agreement => {
