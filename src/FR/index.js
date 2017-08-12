@@ -258,7 +258,7 @@ function filterArticlesAboutLeaves(pages) {
 
 
 function saveAgreement(linkNumber, name) {
-    let number;
+    let number, brochure;
     return getAgreementLinks(linkNumber)
     .then(page => {
 
@@ -271,6 +271,7 @@ function saveAgreement(linkNumber, name) {
         page.links = [page.links[0]];
 
         number = page.number;
+        brochure = page.brochure;
         return Promise.all(page.links.map(getAgreementContent));
     })
     .then(pages => {
@@ -298,6 +299,7 @@ function saveAgreement(linkNumber, name) {
 
         let data = JSON.stringify({
             number: number,
+            brochure: brochure,
             cont: linkNumber,
             lastModified: new Date(),
             name: name,

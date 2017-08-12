@@ -59,6 +59,7 @@ def getTransformedFile(data):
     return {
         'name': data.get('name'),
         'number': data.get('number'),
+        'brochure': data.get('brochure'),
         'articles': articles
     }
 
@@ -229,7 +230,7 @@ def getAgreementTags(agreement):
 def tagsByAgreements():
     for data in getData():
         agreement = getTransformedFile(data)
-        print('{0:15} {1}'.format(agreement.get('number'), ', '.join(getAgreementTags(agreement))))
+        print('{0:15} {1} {2}'.format(agreement.get('number'), agreement.get('brochure'), ', '.join(getAgreementTags(agreement))))
 
 
 tagsByAgreements()
